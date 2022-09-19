@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>ZIP読込</title>
+
+    <!-- Custom Style -->
+    <link href="css/Style.css" rel="stylesheet">
+	<link href="css/Detail.css" rel="stylesheet">
+    
+    <!-- Bootstrap Core CSS -->
+    <link href="bootstrap/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="bootstrap/vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="bootstrap/dist/css/sb-admin-2.css" rel="stylesheet">
+
+	<!-- fontawesome -->
+	<link href="bootstrap/vendor/font-awesome/css/all.css" rel="stylesheet" type="text/css">
+
+    <!-- Custom Fonts -->
+	<link href="bootstrap/vendor/font-awesome/css/fontawesome.min.css" rel="stylesheet" type="text/css">
+	
+    <!-- jQuery -->
+    <script src="bootstrap/vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="bootstrap/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="bootstrap/vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="bootstrap/dist/js/sb-admin-2.js"></script>
+	
+	<!-- Custom JS -->
+	<script src="js/papaparse.js" async></script>
+    <script src="js/Script.js" async></script>
+	<style>
+		.modal_loading {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: rgba(255, 255, 255, .8)
+                url(./img/load.gif) 50% 50% no-repeat;
+        }
+		.modal_loading_1 {
+		  display: none;
+		  border: 16px solid #f3f3f3;
+		  border-radius: 50%;
+		  border-top: 16px solid #3498db;
+		  height: 20%;
+          width: 10%;
+		  position: fixed;
+          z-index: 1000;
+          top: 30%;
+          left: 40%;
+		  animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+		  0% { transform: rotate(0deg); }
+		  100% { transform: rotate(360deg); }
+		}
+	</style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
+        <!-- Header -->
+		<!--
+        <div class="navbar-header col-lg-12" style="margin-bottom: 5px; height: 40px;">
+            <a class="navbar-brand a_img" href="#"><img class="a_img" src="img/logo.png"></a>
+        </div>
+		-->
+		<h2 class="navbar-header col-md-12">Check flight detail</h3>
+		<!-- Header End -->
+        <div class="navbar-header col-md-12" style="margin: 10px 0px 10px 0px;">
+            <ul class="nav nav-pills">
+                <li id="zipId" class="active" style="margin-left:80px;">
+                    <a data-toggle="pill" class="acitveStep" href="#zip"><i class="far fa-file-archive"></i> ZIP読込</a>
+                </li>
+				<li id="arrow1Id" class="disabled">
+					<a href="#" style="pointer-events: none; cursor: default;"><i class="fas fa-arrow-right"></i></a>
+				</li>
+				<li >
+                    <a id="searchId" data-toggle="pill" class="disabled disabledStep" href="#search" ><i class="fas fa-search"></i> 検索</a>
+                </li>
+				<li id="arrow2Id" class="disabled">
+					<a href="#" style="pointer-events: none; cursor: default;"><i class="fas fa-arrow-right"></i></a>
+				</li>
+                <li>
+                    <a id="listId"  data-toggle="pill" class="disabled disabledStep" href="#list"><i class="fas fa-list"></i> 一覧</a>
+                </li>
+				<li id="arrow3Id" class="disabled">
+					<a href="#" style="pointer-events: none; cursor: default;"><i class="fas fa-arrow-right"></i></a>
+				</li>
+                <li>
+                    <a id="detailId" data-toggle="pill" class="disabled disabledStep" href="#detail"><i class="fas fa-plane-departure"></i> フライト詳細</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="wrapper">
+        <div class="content tab-content font_jp ">
+			<div id="zip" class="tab-pane fade in active ">
+				<!--detail-->
+				<div class="col-md-12 header-custom">
+					<p class="page-header text-primary">
+						<span class="detail_main"><i class="far fa-file-archive"></i> ZIP読込</span>
+					</p>
+				</div>
+				<div class="modal modal_loading"></div>
+				<div class="col-md-8 col-md-offset-2 msg_err_zip">
+					<div class="panel panel-primary">
+						<div class="panel-heading groupbox_name"></div>
+						<div class="panel-body">
+							<!--<form>-->
+								<div class="row" style="align-items: center; display: flex;">
+									<div class="col-md-2">
+										<span><b>C-Cache ZIP読込</b></span>
+									</div>
+									<div class="col-md-8" style="align-items: center; display: flex;">
+										<!-- Open folder 
+										<input id="fileName" class="input_normal" style="width:100%" type="text" readonly="true">
+										<label for="folder" style="display:contents; padding-right: 10px;"><i class="far fa-folder-open" style="padding-left: 10px; font-size: 1.3em; color: #337ab7;"></i></label>
+										<input id="folder" type="file" onchange="selectFolder(event)"  style="opacity: 0; width:0%"  webkitdirectory directory/>
+										-->
+										<label class="folder">
+											<input type="file" onchange="selectFolder(event)" aria-label="Folder browser example" id="files" multiple>
+											<span id="folderName" class="folder-custom">フォルダ選択...</span>
+										</label>
+									</div>
+									<div class="col-md-2">
+										<button id="submit-parse" class="btn btn-primary btn_right btn_general">読込</button>
+									</div>
+								</div>
+								<br/>
+								<span id="numberOfFile"></span>
+								<br/>
+								<ul id="listingFile" class="scrollListing"></ul>
+							<!--</form>-->
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="search" class="tab-pane fade">
+				<!--detail-->
+				<div class="col-md-12 header-custom">
+					<p class="page-header text-primary">
+						<span class="detail_main"><i class="fas fa-search"></i> 検索</a></span>
+					</p>
+				</div>
+				<div class="modal modal_loading"></div>
+				<div class="col-md-10 col-md-offset-1 msg_err_search">
+					<div class="panel panel-primary">
+						<div class="panel-heading groupbox_name">
+						</div>
+						<div class="panel-body">
+							<!--<form>-->
+								<div>
+									<span class="col-sm-1 w_40"></span>
+									<span class="col-sm-1 w_140">航空会社</span>
+									<input class="col-sm-1 input_small w_140 upper_case" type="text" maxlength="2" id="txtAirlines" onchange="autoFillCabin()">
+									<span class="col-sm-1"></span>
+									
+									<span class="col-sm-1">出発地</span>
+									<input class="col-sm-1 input_small w_140 upper_case" type="text" maxlength="3" id="txtOrigin" onchange="autoFillCabin()">
+									
+									<span class="col-sm-1"></span>
+									<span class="col-sm-1">到着地</span>
+									<input class="w_140 input_small upper_case" type="text" maxlength="3" id="txtDestination" onchange="autoFillCabin()">  
+								</div>
+
+								<div class="pt_10">
+									<span class="col-sm-1 w_40"></span>
+									<span class="col-sm-1 w_140">Cabin</span>
+									<select id="cbCabin" name="dataTables-example_length" aria-controls="dataTables-example" class="w_140 input_medium" style="border-width: 1px; border-color: black;">
+										<!--<option value="Y">Y(ｴｺﾉﾐｰ)</option>
+										<option value="S">S(ﾌﾟﾚﾐｱﾑｴｺﾉﾐｰ)</option>
+										<option value="C">C(ﾋﾞｼﾞﾈｽ)</option>
+										<option value="J">J(ﾌﾟﾚﾐｱﾑﾋﾞｼﾞﾈｽ)</option>
+										<option value="F">F(ﾌｧｰｽﾄ)</option>
+										<option value="P">P(ﾌﾟﾚﾐｱﾑﾌｧｰｽﾄ)</option>-->
+									</select>
+								</div>
+							   
+								<div class="pt_10">
+									<span class="col-sm-1 w_40"></span>
+									<span class="col-sm-1 w_140">乗継回数</span>
+									<input id="txtStop" class="w_140 input_small" type="text" maxlength="1" onkeypress="return isNumberKey(event)">
+								</div>
+								<div class="pt_10">
+									<span class="col-sm-1 w_40"></span>
+									<span class="col-sm-1 w_140">出発時間帯(往路)</span>
+									<select id="cbOutbound" name="dataTables-example_length" aria-controls="dataTables-example" class="w_270 input_medium" style="border-width: 1px; border-color: black;" onchange="fillDataInbound();">
+										<!--<option value="1">深夜２（００：００～０３：５９）</option>
+										<option value="2">早朝（０４：００～０７：５９）</option>
+										<option value="3">午前（０８：００～１１：５９）</option>
+										<option value="4">午後（１２：００～１７：５９）</option>
+										<option value="5">夜（１８：００～２２：５９）</option>
+										<option value="6">深夜１（２３：００～２３：５９）</option>-->
+									</select>
+								</div>
+								<div class="pt_10">
+									<span class="col-sm-1 w_40"></span>
+									<span class="col-sm-1 w_140">出発時間帯(復路)</span>
+									<select id="cbInbound" name="dataTables-example_length" aria-controls="dataTables-example" class="w_270 input_medium" style="border-width: 1px; border-color: black;">
+										<!--<option value="1">深夜２（００：００～０３：５９）</option>
+										<option value="2">早朝（０４：００～０７：５９）</option>
+										<option value="3">午前（０８：００～１１：５９）</option>
+										<option value="4">午後（１２：００～１７：５９）</option>
+										<option value="5">夜（１８：００～２２：５９）</option>
+										<option value="6">深夜１（２３：００～２３：５９）</option>-->
+									</select>
+								</div>
+								<div class="pt_10">
+									<span class="col-sm-1 w_40"></span>
+									<span class="col-sm-1 w_140">運賃種別</span>
+									<select id="cbFare" name="dataTables-example_length" aria-controls="dataTables-example" class="w_270 input_medium" style="border-width: 1px; border-color: black;">
+										<!--<option value="1">PEX</option>
+										<option value="2">Private Fare(WPPV)</option>
+										<option value="3">Private Fare (IT / 旅客種別指定)</option>-->
+									</select>
+								</div
+								<!-- button search -->
+								<p>
+									<button onclick="search()" class="btn btn-primary btn_general" style="float: right">検索</button>
+								</p> 
+							<!--</form>-->
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="list" class="tab-pane fade">
+				<!--detail-->
+				<div class="col-md-12 header-custom">
+					<p class="page-header text-primary">
+						<span class="detail_main"><i class="fas fa-list"></i> 一覧</span>
+					</p>
+				</div>
+				<div class="modal modal_loading"></div>
+				<!--List-->
+				<div class="col-md-10 col-md-offset-1 content-body msg_err_list">
+					<div class="panel panel-primary">
+						<div class="panel-heading groupbox_name">
+						</div>
+						<div class="panel-body">
+							<div class="tableFixHead" id="wrap-table">
+								<!-- show data table using js -->	
+						    </div>
+							<div class="col-md-12" style="margin-top: 10px;">
+								<div class="col-md-2 lowPriceNote">
+									<strong>最安運賃</strong>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--list end-->
+			</div>
+			<div id="detail" class="tab-pane fade">
+				<!--detail-->
+				<div class="col-md-12 header-custom">
+					<p class="page-header text-primary">
+						<span class="detail_main"><i class="fas fa-plane-departure"></i> フライト詳細</span>
+					</p>
+				</div>
+				<div class="col-md-10 col-md-offset-1">
+					<div class="panel panel-primary">
+						<div class="panel-heading groupbox_name">
+						</div>
+						<div class="panel-body">
+							<div class="modal-body center-popup-main">
+								<!--detail content -->
+								<div class="panel-wf mb-10 wp-60">
+									<div class="panel-header">
+										<a class="btn" data-toggle="collapse" href="#collapseDetail" role="button" aria-expanded="false" aria-controls="collapseDetail">
+											<span>&nbsp;リクエスト情報　▽&nbsp;</span>
+										</a>
+									</div>
+									<div class="collapse" id="collapseDetail">
+										<div class="panel-body detail-title">
+											<div class="detail-title-content">
+											<!--show detail content using js -->
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--detail content end -->
+								<!--detail flight -->
+								<div class="tab-content">
+									<div id="itinerary0" class="tab-pane fade active in">
+										<!-- Left panel -->
+										<div class="center-popup wp-60">
+											<p class="center-top-title">
+												<span>プレートキャリア:</span>
+											</p>
+											<div class="center-popup-main scrollbar">
+												<div class="panel-wf mb-10">
+													<div class="panel-header">
+														<span>&nbsp;往路（行き）&nbsp;</span>
+													</div>
+													<div class="panel-body left-detail1">
+														<!--show left detail 1 content using js -->
+													</div>
+												</div>
+
+												<div class="panel-wf">
+													<div class="panel-header">
+														<span>&nbsp;復路（帰り）&nbsp;</span>
+													</div>
+													<div class="panel-body left-detail2">
+														<!--show left detail 2 content using js -->
+													</div>
+													
+												</div>
+											</div>
+										</div>
+										<!-- Left panel End-->
+										<!-- Right panel -->
+										<div class="right-popup wp-40">
+											<div class="panel-wf center-popup-main scrollbar">
+												<div class="panel-header">
+													<span>&nbsp;料金内訳&nbsp;</span>
+												</div>
+												<div class="panel-body h-230 right-detail1">
+													<!--show right detail 1 content using js -->
+												</div>
+												<div class="panel-wf" style="padding-top: 5px">
+												<div class="panel-header">
+													<span>&nbsp;無料手荷物情報&nbsp;</span>
+												</div>
+												<div class="panel-body h-150 right-detail2">
+													<!--show right detail 2 content using js -->
+												</div>
+											</div>
+											<div class="panel-wf" style="padding-top: 5px">
+												<div class="panel-header">
+													<span>&nbsp;手荷物費用&nbsp;</span>
+												</div>
+												<div class="panel-body h-150 right-detail3">
+													<!--show right detail 3 content using js -->
+												</div>
+											</div>
+											<div class="panel-wf" style="padding-top: 5px">
+												<div class="panel-header">
+													<span>&nbsp;TAX情報&nbsp;</span>
+												</div>
+												<div class="panel-body h-150 right-detail4">
+													<!--show right detail 4 content using js -->
+												</div>
+											</div>
+											</div>
+										</div>
+										<!-- Right panel End -->
+									</div>
+								</div>
+								<!--detail flight end -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+    <!-- Footer -->
+	<footer class="page-footer font-small blue-grey lighten-5 col-md-12" style="padding-top: 75px !important">
+		<!-- Copyright -->
+		<div class="footer-copyright text-center text-black-50 py-3">
+			© 2022 Copyright:
+			<a class="dark-grey-text" href="#"> infini.com</a>
+			<br>
+			<br>
+		</div>
+		<!-- Copyright -->
+	
+	</footer>
+	<!-- Footer -->
+</body>
+
+</html>
